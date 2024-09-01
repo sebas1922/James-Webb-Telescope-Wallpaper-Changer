@@ -3,6 +3,10 @@ import json
 import argparse
 import random
 from bs4 import BeautifulSoup
+from dotenv import load_dotenv
+import os 
+
+api_key = os.getenv("FLICKR_API_KEY")
 
 ALBUM_IDS = [{"year": 2024, "Id": "72177720313923911"}, {"year":2023, "Id":"72177720305127361"}, {"year":2022, "Id": "72177720305127361"}]
 url = "https://www.flickr.com/photos/nasawebbtelescope/albums/"+random.choice(ALBUM_IDS)["Id"]
