@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 import os
 import platform
+import ctypes
 
 def main():
     load_dotenv()
@@ -20,6 +21,7 @@ def main():
     headers = {}
 
     user_id = (get_user_id(URL, payload))
+
     
     # get list of photos in one of the three JWST albums
     album_photos = requests.get(URL+"?method=flickr.photosets.getPhotos", headers=headers, params=payload | {"photoset_id": JWST_ALBUM[0]["Id"]})
@@ -32,9 +34,9 @@ def main():
 
     #print(photo_info)["name"]
 
-    #Request and save the originaldownload link for the photo
+    #Request and save the original download link for the photo
     photo_download_links = requests.get(URL+"?method=flickr.photos.getSizes", headers=headers, params=payload | {"photo_id": photo_info["photo_id"]})
-    soup = BeautifulSoup(photo_download_links.text, "xml").find("size", {"label": "Large"})
+    soup = BeautifulSoup(photo_download_links.text, "xml").find("size", {"label": "Original"})
     file_download_link = soup.attrs["source"]
     
     main_dir = os.getcwd()
@@ -45,14 +47,15 @@ def main():
         print("Creating directory 'things'...")
 
     r = requests.get(file_download_link)
-    with open(f"{main_dir}/images/{photo_info["name"]}.jpg", "wb") as f:
+    file_path = f"{main_dir}/images/{photo_info["name"]}.jpg"
+    with open(file_path, "wb") as f:
         f.write(r.content)
 
     print(f"Downloaded {photo_info["name"]}.jpg")
 
     #set the wallpaper depending on the operating system
     if (PLATFORM == "Windows"):
-        os.startfile(f"{main_dir}/images/{photo_info['name']}.jpg")
+        ctypes.windll.user32.SystemParametersInfoW(20, 0, file_path, 0)
     elif(PLATFORM == "Linux"):
         os.system(f"xdg-open {main_dir}/images/{photo_info['name']}.jpg")
     
@@ -73,7 +76,6 @@ def get_user_id(url, payload):
         dict: The response from the API containing the user id.
     """
     r = requests.get(url+"?method=flickr.people.findByUsername", params= payload | {"username" : "James Webb Space Telescope"})
-
     soup = BeautifulSoup(r.text, "xml")
     return soup.find("user").parent()[0].attrs["nsid"]
     
