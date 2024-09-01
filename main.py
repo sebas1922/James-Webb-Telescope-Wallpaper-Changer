@@ -5,23 +5,24 @@ from random import choice
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 import os
+import platform
 
 def main():
     load_dotenv()
 
-    api_key = os.getenv("FLICKR_API_KEY")
+    PLATFORM = platform.system()
+    print(PLATFORM)
+    API_KEY = os.getenv("FLICKR_API_KEY")
+    JWST_ALBUM = [{"year": 2024, "Id": "72177720313923911"}, {"year":2023, "Id":"72177720305127361"}, {"year":2022, "Id": "72177720305127361"}]
+    URL = "https://flickr.com/services/rest/"
 
-    ALBUM_IDS = [{"year": 2024, "Id": "72177720313923911"}, {"year":2023, "Id":"72177720305127361"}, {"year":2022, "Id": "72177720305127361"}]
-
-    url = "https://flickr.com/services/rest/"
-
-    payload = {"api_key": api_key}
+    payload = {"api_key": API_KEY}
     headers = {}
 
-    user_id = (get_user_id(url, payload))
+    user_id = (get_user_id(URL, payload))
     
     # get list of photos in one of the three JWST albums
-    album_photos = requests.get(url+"?method=flickr.photosets.getPhotos", headers=headers, params=payload | {"photoset_id": ALBUM_IDS[0]["Id"]})
+    album_photos = requests.get(URL+"?method=flickr.photosets.getPhotos", headers=headers, params=payload | {"photoset_id": JWST_ALBUM[0]["Id"]})
     soup = BeautifulSoup(album_photos.text, "xml")
     
     #Get the id and name of a random photo from the album
@@ -32,7 +33,7 @@ def main():
     #print(photo_info)["name"]
 
     #Request and save the originaldownload link for the photo
-    photo_download_links = requests.get(url+"?method=flickr.photos.getSizes", headers=headers, params=payload | {"photo_id": photo_info["photo_id"]})
+    photo_download_links = requests.get(URL+"?method=flickr.photos.getSizes", headers=headers, params=payload | {"photo_id": photo_info["photo_id"]})
     soup = BeautifulSoup(photo_download_links.text, "xml").find("size", {"label": "Large"})
     file_download_link = soup.attrs["source"]
     
@@ -49,8 +50,11 @@ def main():
 
     print(f"Downloaded {photo_info["name"]}.jpg")
 
-
-    
+    #set the wallpaper depending on the operating system
+    if (PLATFORM == "Windows"):
+        os.startfile(f"{main_dir}/images/{photo_info['name']}.jpg")
+    elif(PLATFORM == "Linux"):
+        os.system(f"xdg-open {main_dir}/images/{photo_info['name']}.jpg")
     
 
    
