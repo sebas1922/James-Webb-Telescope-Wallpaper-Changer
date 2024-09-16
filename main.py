@@ -7,12 +7,12 @@ from dotenv import load_dotenv
 import os
 import platform
 import ctypes
+import subprocess
 
 def main():
     load_dotenv()
 
     PLATFORM = platform.system()
-    print(PLATFORM)
     API_KEY = os.getenv("FLICKR_API_KEY")
     JWST_ALBUM = [{"year": 2024, "Id": "72177720313923911"}, {"year":2023, "Id":"72177720305127361"}, {"year":2022, "Id": "72177720305127361"}]
     URL = "https://flickr.com/services/rest/"
@@ -41,15 +41,17 @@ def main():
     
     main_dir = os.getcwd()
 
-    #Download the image
+    #Create folder images if not present
     if("images" not in os.listdir(main_dir)):
         os.mkdir("images")
-        print("Creating directory 'things'...")
+        print("Creating directory 'images'...")
 
     r = requests.get(file_download_link)
     file_path = f"{main_dir}/images/{photo_info["name"]}.jpg"
+    print(f"Operating System detected: {PLATFORM}")
     with open(file_path, "wb") as f:
         f.write(r.content)
+        print("Downloading image...")
 
     print(f"Downloaded {photo_info["name"]}.jpg")
 
@@ -57,7 +59,9 @@ def main():
     if (PLATFORM == "Windows"):
         ctypes.windll.user32.SystemParametersInfoW(20, 0, file_path, 0)
     elif(PLATFORM == "Linux"):
-        os.system(f"xdg-open {main_dir}/images/{photo_info['name']}.jpg")
+        print(file_path)
+        subprocess.run(f"feh --bg-fill '{file_path}'")
+        
     
 
    
